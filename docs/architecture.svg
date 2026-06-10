@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" role="img" aria-label="uchikomiのアーキテクチャ図">
+  <title>uchikomiのアーキテクチャ</title>
+  <style>
+    .box { fill: none; stroke: #8b93a7; stroke-width: 1.5; }
+    .accent-box { fill: none; stroke: #d9a93f; stroke-width: 1.5; }
+    .label { font: 600 14px 'Hiragino Sans', 'Noto Sans JP', sans-serif; fill: #6b7180; }
+    .small { font: 400 11.5px 'Hiragino Sans', 'Noto Sans JP', sans-serif; fill: #6b7180; }
+    .accent-label { font: 700 14px 'Hiragino Sans', 'Noto Sans JP', sans-serif; fill: #b3851f; }
+    .arrow { stroke: #8b93a7; stroke-width: 1.5; fill: none; marker-end: url(#head); }
+  </style>
+  <defs>
+    <marker id="head" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8z" fill="#8b93a7"/>
+    </marker>
+  </defs>
+
+  <rect x="20" y="70" width="150" height="72" rx="8" class="box"/>
+  <text x="40" y="98" class="label">snippets</text>
+  <text x="40" y="120" class="small">言語ごとの打鍵対象</text>
+  <text x="40" y="136" class="small">(拡張点)</text>
+
+  <rect x="240" y="30" width="160" height="64" rx="8" class="accent-box"/>
+  <text x="260" y="56" class="accent-label">TypingEngine</text>
+  <text x="260" y="78" class="small">入力判定・統計</text>
+
+  <rect x="240" y="118" width="160" height="64" rx="8" class="box"/>
+  <text x="260" y="144" class="label">keyboard</text>
+  <text x="260" y="166" class="small">文字 → 押すキー案内</text>
+
+  <rect x="470" y="74" width="160" height="64" rx="8" class="box"/>
+  <text x="490" y="100" class="label">main</text>
+  <text x="490" y="122" class="small">画面・キーボード描画</text>
+
+  <rect x="690" y="74" width="90" height="64" rx="8" class="box"/>
+  <text x="710" y="100" class="label">入力</text>
+  <text x="704" y="122" class="small">keydown</text>
+
+  <path class="arrow" d="M170 106 C200 106 210 66 232 62"/>
+  <path class="arrow" d="M170 106 C200 106 210 146 232 150"/>
+  <path class="arrow" d="M400 62 C435 70 440 96 462 102"/>
+  <path class="arrow" d="M400 150 C435 142 440 116 462 110"/>
+  <path class="arrow" d="M690 106 H632"/>
+</svg>
