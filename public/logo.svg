@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="uchikomiのロゴ">
+  <title>uchikomi</title>
+  <rect x="6" y="20" width="52" height="30" rx="5" fill="none" stroke="#ffcf6b" stroke-width="3"/>
+  <rect x="13" y="27" width="6" height="6" rx="1.5" fill="#8b93a7"/>
+  <rect x="23" y="27" width="6" height="6" rx="1.5" fill="#8b93a7"/>
+  <rect x="33" y="27" width="6" height="6" rx="1.5" fill="#ffcf6b"/>
+  <rect x="43" y="27" width="6" height="6" rx="1.5" fill="#8b93a7"/>
+  <rect x="18" y="38" width="28" height="6" rx="2" fill="#8b93a7"/>
+</svg>
