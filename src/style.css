@@ -1,56 +1,68 @@
+/* 配色は温度のある中立色を地に、琥珀のアクセント1色で運指とキャレットを示す。
+   data-theme でライト/ダークを明示し、未指定(自動)は prefers-color-scheme に従う。 */
+
 :root {
   color-scheme: light dark;
-  --bg: #f4f6fb;
-  --panel: #ffffff;
-  --panel-2: #eef0f6;
-  --line: #e2e5ee;
-  --ink: #1b2230;
-  --ink-soft: #5e6678;
-  --accent: #f0b429;
-  --accent-strong: #946400;
-  --accent-ring: rgba(240, 180, 41, 0.32);
-  --on-accent: #20242c;
-  --done: #2f8f5b;
-  --error: #d64545;
-  --shadow-sm: 0 1px 2px rgba(20, 28, 48, 0.06);
-  --shadow: 0 2px 4px rgba(20, 28, 48, 0.06), 0 12px 30px rgba(20, 28, 48, 0.08);
-  --mono: 'SFMono-Regular', 'Consolas', 'Menlo', monospace;
+
+  --bg: #f6f4ef;
+  --bg-tint: #efece3;
+  --ink: #221f1a;
+  --ink-soft: #5f5a49;
+  --ink-faint: #908a78;
+  --line: #e6e1d4;
+  --line-strong: #d7d0bf;
+  --accent: #a85e10;
+  --accent-bg: #eaa63f;
+  --on-accent: #2a2206;
+  --good: #2f7d52;
+  --bad: #c0392b;
+  --on-bad: #fbeeec;
+
+  --mono: ui-monospace, 'SFMono-Regular', 'JetBrains Mono', 'Menlo', 'Consolas', monospace;
+  --sans: 'Hiragino Sans', 'Noto Sans JP', system-ui, -apple-system, sans-serif;
+
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --step: 8px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --bg: #11131a;
-  --panel: #1a1e28;
-  --panel-2: #232838;
-  --line: #2e3344;
-  --ink: #e8ecf4;
-  --ink-soft: #8b93a7;
-  --accent: #ffcf6b;
-  --accent-strong: #ffcf6b;
-  --accent-ring: rgba(255, 207, 107, 0.3);
-  --on-accent: #1a1e28;
-  --done: #5fb98a;
-  --error: #ff6b6b;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.42);
+  color-scheme: dark;
+  --bg: #15161b;
+  --bg-tint: #1b1d24;
+  --ink: #e9e6dd;
+  --ink-soft: #a09b8d;
+  --ink-faint: #6c6859;
+  --line: #292b33;
+  --line-strong: #373a44;
+  --accent: #f0b85a;
+  --accent-bg: #e6a23c;
+  --on-accent: #1b1710;
+  --good: #62b98c;
+  --bad: #ef6f63;
+  --on-bad: #1b1710;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #11131a;
-    --panel: #1a1e28;
-    --panel-2: #232838;
-    --line: #2e3344;
-    --ink: #e8ecf4;
-    --ink-soft: #8b93a7;
-    --accent: #ffcf6b;
-    --accent-strong: #ffcf6b;
-    --accent-ring: rgba(255, 207, 107, 0.3);
-    --on-accent: #1a1e28;
-    --done: #5fb98a;
-    --error: #ff6b6b;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 14px 32px rgba(0, 0, 0, 0.42);
+    color-scheme: dark;
+    --bg: #15161b;
+    --bg-tint: #1b1d24;
+    --ink: #e9e6dd;
+    --ink-soft: #a09b8d;
+    --ink-faint: #6c6859;
+    --line: #292b33;
+    --line-strong: #373a44;
+    --accent: #f0b85a;
+    --accent-bg: #e6a23c;
+    --on-accent: #1b1710;
+    --good: #62b98c;
+    --bad: #ef6f63;
+    --on-bad: #1b1710;
   }
 }
 
@@ -60,130 +72,325 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  font-family: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
-  background: var(--bg);
+  font-family: var(--sans);
+  background-color: var(--bg);
+  /* コードを打つ道具らしく、極薄の方眼を地紋に敷く(装飾なので低コントラスト)。 */
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
   color: var(--ink);
-  line-height: 1.6;
+  line-height: 1.7;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 地紋が濃く出ないよう、本文領域はわずかに透過のベタで沈める。 */
+.wrap {
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: calc(var(--step) * 7) calc(var(--step) * 3) calc(var(--step) * 12);
+}
+
+@media (max-width: 620px) {
+  body {
+    background-size: 26px 26px;
+  }
+  .wrap {
+    padding: calc(var(--step) * 4) calc(var(--step) * 2.5) calc(var(--step) * 9);
+  }
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent-strong);
-  outline-offset: 2px;
-  border-radius: 4px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 
-.wrap {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 40px 20px 64px;
+/* ---- ヘッダー ---- */
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--step);
 }
 
-.head h1 {
-  font-size: 28px;
-  letter-spacing: 0.06em;
+.kicker {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
 }
 
-.sub {
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  font-family: var(--mono);
+  font-size: clamp(34px, 7vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin-top: 6px;
+}
+
+/* タイトル末尾の角は端末のキャレットを模した目印(点滅させない)。 */
+.wordmark .caret {
+  display: inline-block;
+  width: 0.46em;
+  height: 0.92em;
+  transform: translateY(0.06em);
+  background: var(--accent-bg);
+  border-radius: 1px;
+}
+
+.theme-toggle {
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   color: var(--ink-soft);
-  margin-top: 4px;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 15px 7px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
 }
+
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.theme-toggle .ico {
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
+}
+
+.lede {
+  margin-top: calc(var(--step) * 2);
+  max-width: 52ch;
+  color: var(--ink-soft);
+  font-size: 15px;
+}
+
+/* ---- 言語タブ ---- */
 
 .langs {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin: 26px 0 18px;
+  gap: 2px calc(var(--step) * 2.5);
+  margin: calc(var(--step) * 4) 0 calc(var(--step) * 1.5);
+  padding-bottom: calc(var(--step) * 1.5);
+  border-bottom: 1px solid var(--line);
 }
 
 .lang {
+  position: relative;
   font: inherit;
   font-size: 14px;
-  padding: 7px 16px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
+  padding: 6px 1px;
+  border: none;
+  background: transparent;
   color: var(--ink-soft);
   cursor: pointer;
-  transition:
-    background-color 0.16s var(--ease),
-    border-color 0.16s var(--ease),
-    color 0.16s var(--ease);
+  letter-spacing: 0.01em;
+  transition: color 0.18s var(--ease);
+}
+
+/* 下線は即時の太線でなく、引かれるように伸びる(background-sizeトリック)。 */
+.lang::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -3px;
+  height: 2px;
+  background: var(--accent-bg);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.26s var(--ease-out);
 }
 
 .lang:hover {
-  border-color: var(--accent);
   color: var(--ink);
 }
 
-.lang.active {
-  background: var(--accent);
-  color: var(--on-accent);
-  border-color: var(--accent);
-  font-weight: 700;
+.lang:hover::after {
+  transform: scaleX(0.4);
 }
 
+.lang.active {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.lang.active::after {
+  transform: scaleX(1);
+}
+
+/* 自己ベストを持つ言語に小さな印 */
+.lang .pb {
+  position: absolute;
+  top: 0;
+  right: -7px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
+}
+
+/* ---- 出題ステージ ---- */
+
 .stage {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 26px;
-  box-shadow: var(--shadow-sm);
+  padding: calc(var(--step) * 4) 0 calc(var(--step) * 3);
 }
 
 .status {
   display: flex;
-  gap: 18px;
-  font-size: 13px;
-  color: var(--ink-soft);
-  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: calc(var(--step) * 3);
   font-variant-numeric: tabular-nums;
+  margin-bottom: calc(var(--step) * 3);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.metric .v {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.metric .v .unit {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  margin-left: 3px;
+}
+
+.metric .k {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.metric.lang-name .v {
+  color: var(--accent);
 }
 
 .target {
   font-family: var(--mono);
-  font-size: 26px;
-  letter-spacing: 0.02em;
+  font-size: clamp(22px, 4.4vw, 32px);
+  letter-spacing: 0.01em;
   white-space: pre-wrap;
-  word-break: break-all;
-  line-height: 1.8;
+  word-break: break-word;
+  line-height: 1.85;
+  min-height: 1.85em;
 }
 
 .ch {
-  border-radius: 3px;
-  transition: background-color 0.05s;
-}
-
-.ch.pending {
-  color: var(--ink-soft);
+  position: relative;
+  border-radius: 2px;
+  color: var(--ink-faint);
+  transition: color 0.12s var(--ease);
 }
 
 .ch.done {
-  color: var(--done);
+  color: var(--good);
 }
 
 .ch.current {
-  background: var(--accent);
   color: var(--on-accent);
+  background: var(--accent-bg);
+  box-shadow: 0 0 0 1px var(--accent-bg);
+}
+
+.ch.current.space,
+.ch.error.space {
+  border-radius: 2px;
 }
 
 .ch.error {
-  background: var(--error);
-  color: #fff;
+  color: var(--on-bad);
+  background: var(--bad);
+  box-shadow: 0 0 0 1px var(--bad);
 }
 
 .note {
-  margin-top: 14px;
+  margin-top: calc(var(--step) * 2.5);
   font-size: 13px;
   color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 9px;
 }
 
+.note::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: var(--line-strong);
+}
+
+.progress {
+  display: flex;
+  gap: 7px;
+  margin-top: calc(var(--step) * 3);
+}
+
+.dot {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  transition:
+    background-color 0.24s var(--ease),
+    transform 0.24s var(--ease);
+}
+
+.dot.done {
+  background: var(--good);
+}
+
+.dot.current {
+  background: var(--accent-bg);
+  transform: scaleY(1.6);
+}
+
+/* ---- 仮想キーボード ---- */
+
 .keyboard {
-  margin-top: 24px;
+  margin-top: calc(var(--step) * 4);
+  padding-top: calc(var(--step) * 4);
+  border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 6px;
+  --key-h: 46px;
 }
 
 .krow {
@@ -194,96 +401,121 @@ body {
 .key {
   flex-basis: 0;
   min-width: 0;
-  height: 44px;
+  height: var(--key-h);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--mono);
   font-size: 13px;
-  color: var(--ink-soft);
-  background: var(--panel-2);
+  color: var(--ink-faint);
+  background: transparent;
   border: 1px solid var(--line);
-  border-radius: 7px;
+  border-radius: 8px;
   user-select: none;
   transition:
-    background-color 0.1s var(--ease),
-    color 0.1s var(--ease),
-    border-color 0.1s var(--ease),
-    box-shadow 0.1s var(--ease);
+    color 0.12s var(--ease),
+    border-color 0.12s var(--ease),
+    background-color 0.12s var(--ease);
 }
 
 .key.next {
-  background: var(--accent);
   color: var(--on-accent);
-  border-color: var(--accent);
+  background: var(--accent-bg);
+  border-color: var(--accent-bg);
   font-weight: 700;
-  box-shadow: 0 0 0 2px var(--accent-ring);
 }
 
 .key.shift {
+  color: var(--accent);
   border-color: var(--accent);
-  color: var(--accent-strong);
 }
 
+/* ---- 結果 ---- */
+
 .result {
-  margin-top: 24px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 28px;
-  text-align: center;
+  margin-top: calc(var(--step) * 4);
+  padding-top: calc(var(--step) * 4);
+  border-top: 1px solid var(--line);
+}
+
+.result[hidden] {
+  display: none;
 }
 
 .result h2 {
-  font-size: 20px;
-  margin-bottom: 20px;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
+  margin-bottom: calc(var(--step) * 3);
+}
+
+.result h2 b {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .result-stats {
   display: flex;
-  justify-content: center;
-  gap: 40px;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: calc(var(--step) * 6);
+  margin-bottom: calc(var(--step) * 4);
 }
 
-.result-stats div {
+.result-stats .cell {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
 .result-stats strong {
-  font-size: 30px;
-  color: var(--accent-strong);
+  font-size: clamp(38px, 9vw, 54px);
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.result-stats .label {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.result-stats .best {
+  font-size: 12px;
+  color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
 }
 
-.result-stats span {
-  font-size: 12px;
-  color: var(--ink-soft);
+.result-stats .best.fresh {
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .retry {
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 11px 28px;
-  border: none;
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 11px 26px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent);
   cursor: pointer;
   transition:
-    transform 0.14s var(--ease),
-    filter 0.14s var(--ease);
+    color 0.18s var(--ease),
+    background-color 0.18s var(--ease);
 }
 
 .retry:hover {
-  filter: brightness(1.06);
-}
-
-.retry:active {
-  transform: translateY(1px);
+  background: var(--accent-bg);
+  border-color: var(--accent-bg);
+  color: var(--on-accent);
 }
 
 /* ---- モーション ---- */
@@ -292,8 +524,8 @@ body {
   0% {
     transform: translateY(0);
   }
-  35% {
-    transform: translateY(2px) scale(0.96);
+  40% {
+    transform: translateY(2px) scale(0.95);
   }
   100% {
     transform: translateY(0);
@@ -307,18 +539,17 @@ body {
 @keyframes key-miss {
   0%,
   100% {
-    background: var(--panel-2);
-    color: var(--ink-soft);
+    border-color: var(--line);
+    color: var(--ink-faint);
   }
   40% {
-    background: var(--error);
-    color: #fff;
-    border-color: var(--error);
+    border-color: var(--bad);
+    color: var(--bad);
   }
 }
 
 .key.miss {
-  animation: key-miss 0.22s var(--ease);
+  animation: key-miss 0.24s var(--ease);
 }
 
 @keyframes shake {
@@ -327,27 +558,24 @@ body {
     transform: translateX(0);
   }
   20% {
-    transform: translateX(-5px);
+    transform: translateX(-4px);
   }
-  40% {
-    transform: translateX(4px);
+  45% {
+    transform: translateX(3px);
   }
-  60% {
-    transform: translateX(-3px);
-  }
-  80% {
-    transform: translateX(2px);
+  70% {
+    transform: translateX(-2px);
   }
 }
 
 .target.shake {
-  animation: shake 0.25s var(--ease);
+  animation: shake 0.24s var(--ease);
 }
 
-@keyframes target-enter {
+@keyframes line-enter {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(7px);
   }
   to {
     opacity: 1;
@@ -356,13 +584,41 @@ body {
 }
 
 .target.enter {
-  animation: target-enter 0.3s var(--ease);
+  animation: line-enter 0.34s var(--ease-out);
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: reveal 0.5s var(--ease-out) both;
+}
+
+.reveal.d1 {
+  animation-delay: 0.05s;
+}
+.reveal.d2 {
+  animation-delay: 0.12s;
+}
+.reveal.d3 {
+  animation-delay: 0.19s;
+}
+.reveal.d4 {
+  animation-delay: 0.26s;
 }
 
 @keyframes result-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -371,23 +627,35 @@ body {
 }
 
 .result.show {
-  animation: result-in 0.32s var(--ease);
+  animation: result-in 0.36s var(--ease-out);
 }
 
 @media (max-width: 620px) {
-  .target {
-    font-size: 20px;
+  .keyboard {
+    --key-h: 34px;
+    gap: 4px;
+  }
+  .krow {
+    gap: 4px;
   }
   .key {
-    height: 34px;
     font-size: 11px;
+    border-radius: 6px;
+  }
+  .result-stats {
+    gap: calc(var(--step) * 4);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+  .lang::after {
+    transition: none;
   }
 }
