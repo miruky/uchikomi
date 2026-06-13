@@ -136,6 +136,66 @@ export const LANGUAGES: Language[] = [
       { text: 'find . -name "*.ts"', note: '探索' },
     ],
   },
+  {
+    id: 'cpp',
+    name: 'C++',
+    snippets: [
+      { text: 'std::cout << "hi\\n";', note: '標準出力' },
+      { text: 'std::vector<int> v;', note: 'ベクタ宣言' },
+      { text: 'for (const auto& x : items)', note: '範囲for' },
+      { text: 'std::sort(v.begin(), v.end())', note: 'ソート' },
+      { text: 'auto p = std::make_unique<T>();', note: 'スマートポインタ' },
+      { text: 'if (it != m.end())', note: '探索の成否' },
+    ],
+  },
+  {
+    id: 'csharp',
+    name: 'C#',
+    snippets: [
+      { text: 'Console.WriteLine("hi");', note: '標準出力' },
+      { text: 'var list = new List<int>();', note: 'リスト生成' },
+      { text: 'items.Where(x => x > 0)', note: '抽出' },
+      { text: 'string.Format("{0}", n)', note: '整形' },
+      { text: 'foreach (var x in items)', note: '反復' },
+      { text: 'Dictionary<string, int>', note: '辞書型' },
+    ],
+  },
+  {
+    id: 'kotlin',
+    name: 'Kotlin',
+    snippets: [
+      { text: 'println("hello")', note: '標準出力' },
+      { text: 'val list = listOf(1, 2, 3)', note: '不変リスト' },
+      { text: 'items.map { it * 2 }', note: '写像' },
+      { text: 'fun add(a: Int, b: Int) = a + b', note: '関数定義' },
+      { text: 'for (x in items)', note: '反復' },
+      { text: 'data class User(val id: Int)', note: 'データクラス' },
+    ],
+  },
+  {
+    id: 'swift',
+    name: 'Swift',
+    snippets: [
+      { text: 'print("hello")', note: '標準出力' },
+      { text: 'let nums = [1, 2, 3]', note: '配列宣言' },
+      { text: 'items.map { $0 * 2 }', note: '写像' },
+      { text: 'guard let x = opt else {', note: 'アンラップ' },
+      { text: 'func add(_ a: Int) -> Int', note: '関数定義' },
+      { text: 'for x in items {', note: '反復' },
+    ],
+  },
+  {
+    id: 'php',
+    name: 'PHP',
+    snippets: [
+      { text: 'echo "hello";', note: '出力' },
+      { text: '$items = array();', note: '配列初期化' },
+      { text: 'array_map(fn($x) => $x * 2, $a)', note: '写像' },
+      { text: 'foreach ($items as $x) {', note: '反復' },
+      { text: 'count($arr)', note: '要素数' },
+      { text: 'implode(", ", $parts)', note: '連結' },
+    ],
+  },
 ];
 
 export function languageById(id: string): Language | undefined {
