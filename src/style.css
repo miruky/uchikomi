@@ -286,6 +286,94 @@ body {
   transform: translateY(1px);
 }
 
+/* ---- モーション ---- */
+
+@keyframes key-hit {
+  0% {
+    transform: translateY(0);
+  }
+  35% {
+    transform: translateY(2px) scale(0.96);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.key.hit {
+  animation: key-hit 0.16s var(--ease);
+}
+
+@keyframes key-miss {
+  0%,
+  100% {
+    background: var(--panel-2);
+    color: var(--ink-soft);
+  }
+  40% {
+    background: var(--error);
+    color: #fff;
+    border-color: var(--error);
+  }
+}
+
+.key.miss {
+  animation: key-miss 0.22s var(--ease);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-5px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
+.target.shake {
+  animation: shake 0.25s var(--ease);
+}
+
+@keyframes target-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.target.enter {
+  animation: target-enter 0.3s var(--ease);
+}
+
+@keyframes result-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.result.show {
+  animation: result-in 0.32s var(--ease);
+}
+
 @media (max-width: 620px) {
   .target {
     font-size: 20px;
