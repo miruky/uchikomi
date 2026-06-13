@@ -94,6 +94,10 @@ function loadSnippet(): void {
   renderTarget();
   renderHints();
   updateStatus();
+  // 新しい行に切り替わったことをやわらかく見せる
+  targetEl.classList.remove('enter');
+  void targetEl.offsetWidth;
+  targetEl.classList.add('enter');
 }
 
 function renderTarget(): void {
@@ -140,13 +144,41 @@ function showResult(): void {
   const total = totalCorrect + totalMistakes;
   const acc = total > 0 ? Math.round((totalCorrect / total) * 100) : 100;
   resultEl.hidden = false;
+  resultEl.classList.remove('show');
+  void resultEl.offsetWidth;
+  resultEl.classList.add('show');
   resultEl.innerHTML =
     `<h2>${language.name} 完了</h2>` +
-    `<div class="result-stats"><div><strong>${wpm}</strong><span>WPM</span></div>` +
-    `<div><strong>${acc}%</strong><span>正確性</span></div>` +
-    `<div><strong>${language.snippets.length}</strong><span>打鍵した行</span></div></div>` +
+    `<div class="result-stats">` +
+    `<div><strong data-count="${wpm}">0</strong><span>WPM</span></div>` +
+    `<div><strong data-count="${acc}" data-suffix="%">0%</strong><span>正確性</span></div>` +
+    `<div><strong data-count="${language.snippets.length}">0</strong><span>打鍵した行</span></div>` +
+    `</div>` +
     `<button type="button" class="retry">もう一度</button>`;
   resultEl.querySelector('.retry')!.addEventListener('click', () => start(language));
+  countUp();
+}
+
+// 結果の数値を0から目標へカウントアップする。reduced-motion時は即時表示。
+function countUp(): void {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  resultEl.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+    const to = Number(el.dataset.count);
+    const suffix = el.dataset.suffix ?? '';
+    if (reduce) {
+      el.textContent = `${to}${suffix}`;
+      return;
+    }
+    const duration = 620;
+    const startAt = performance.now();
+    const tick = (now: number): void => {
+      const p = Math.min(1, (now - startAt) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = `${Math.round(to * eased)}${suffix}`;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
 }
 
 window.addEventListener('keydown', (ev) => {
@@ -163,9 +195,32 @@ window.addEventListener('keydown', (ev) => {
   if (ev.key === 'Tab' || ev.key === ' ') ev.preventDefault();
   if (ev.key.length !== 1) return;
 
-  engine.input(ev.key);
+  const ok = engine.input(ev.key);
   renderTarget();
   renderHints();
   updateStatus();
+  flashFeedback(ev.key, ok);
   if (engine.finished) window.setTimeout(advance, 220);
 });
+
+// 打鍵のたびに、押したキーを点灯させる。誤打は赤く点滅し、打鍵対象を小さく揺らす。
+function flashFeedback(char: string, ok: boolean): void {
+  const hint = hintFor(char);
+  if (hint) {
+    for (const el of keyEls.get(hint.base) ?? []) {
+      const cls = ok ? 'hit' : 'miss';
+      el.classList.remove('hit', 'miss');
+      void el.offsetWidth; // アニメーションを確実に再生させる
+      el.classList.add(cls);
+      el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+    }
+  }
+  if (!ok) {
+    targetEl.classList.remove('shake');
+    void targetEl.offsetWidth;
+    targetEl.classList.add('shake');
+    targetEl.addEventListener('animationend', () => targetEl.classList.remove('shake'), {
+      once: true,
+    });
+  }
+}
