@@ -2,23 +2,33 @@ import './style.css';
 import { TypingEngine } from './engine';
 import { hintFor, ROWS } from './keyboard';
 import { LANGUAGES, type Language } from './snippets';
+import { bestFor, recordScore } from './records';
+import { applyTheme, loadTheme, nextTheme, THEME_LABEL, type ThemeMode } from './theme';
 
 const app = document.getElementById('app');
 if (!app) throw new Error('#app が見つからない');
 
+let theme: ThemeMode = loadTheme();
+applyTheme(theme);
+
 app.innerHTML = `
   <main class="wrap">
-    <header class="head">
-      <h1>uchikomi</h1>
-      <p class="sub">各言語の関数を、仮想キーボードを見ながら打ち込む</p>
+    <header class="head reveal">
+      <div class="brand">
+        <p class="kicker">コードタイピング</p>
+        <h1 class="wordmark">uchikomi<span class="caret" aria-hidden="true"></span></h1>
+      </div>
+      <button type="button" class="theme-toggle" id="theme"></button>
     </header>
-    <nav class="langs" id="langs" aria-label="言語選択"></nav>
-    <section class="stage">
+    <p class="lede reveal d1">各言語の関数や構文を、画面のキーボードで運指を確かめながら打つ。記号の多いコードを速く正確に打つ練習に。</p>
+    <nav class="langs reveal d2" id="langs" aria-label="言語選択"></nav>
+    <section class="stage reveal d3" aria-label="出題">
       <div class="status" id="status"></div>
       <div class="target" id="target"></div>
-      <p class="note" id="note"></p>
+      <p class="note" id="note" aria-live="polite"></p>
+      <div class="progress" id="progress" aria-hidden="true"></div>
     </section>
-    <section class="keyboard" id="keyboard" aria-hidden="true"></section>
+    <section class="keyboard reveal d4" id="keyboard" aria-hidden="true"></section>
     <section class="result" id="result" hidden></section>
   </main>
 `;
@@ -27,8 +37,10 @@ const langsEl = app.querySelector<HTMLElement>('#langs')!;
 const statusEl = app.querySelector<HTMLElement>('#status')!;
 const targetEl = app.querySelector<HTMLElement>('#target')!;
 const noteEl = app.querySelector<HTMLElement>('#note')!;
+const progressEl = app.querySelector<HTMLElement>('#progress')!;
 const keyboardEl = app.querySelector<HTMLElement>('#keyboard')!;
 const resultEl = app.querySelector<HTMLElement>('#result')!;
+const themeBtn = app.querySelector<HTMLButtonElement>('#theme')!;
 
 let language: Language = LANGUAGES[0]!;
 let index = 0;
@@ -40,9 +52,35 @@ let timer = 0;
 
 const keyEls = new Map<string, HTMLElement[]>();
 
+setupTheme();
 buildLangs();
 buildKeyboard();
 start(language);
+
+function setupTheme(): void {
+  renderThemeBtn();
+  themeBtn.addEventListener('click', () => {
+    theme = nextTheme(theme);
+    applyTheme(theme);
+    renderThemeBtn();
+  });
+}
+
+function renderThemeBtn(): void {
+  themeBtn.innerHTML = `${themeIcon(theme)}<span>${THEME_LABEL[theme]}</span>`;
+  themeBtn.setAttribute('aria-label', `表示テーマを切り替える(現在: ${THEME_LABEL[theme]})`);
+}
+
+function themeIcon(mode: ThemeMode): string {
+  const open = '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  if (mode === 'light') {
+    return `${open}<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>`;
+  }
+  if (mode === 'dark') {
+    return `${open}<path d="M20 14.4A8 8 0 0 1 9.6 4 7 7 0 1 0 20 14.4Z"/></svg>`;
+  }
+  return `${open}<circle cx="12" cy="12" r="8.4"/><path d="M12 3.6a8.4 8.4 0 0 1 0 16.8Z" fill="currentColor" stroke="none"/></svg>`;
+}
 
 function buildLangs(): void {
   for (const lang of LANGUAGES) {
@@ -51,9 +89,22 @@ function buildLangs(): void {
     btn.className = 'lang';
     btn.dataset.lang = lang.id;
     btn.textContent = lang.name;
+    const pb = document.createElement('span');
+    pb.className = 'pb';
+    pb.hidden = true;
+    btn.appendChild(pb);
     btn.addEventListener('click', () => start(lang));
     langsEl.appendChild(btn);
   }
+  refreshPbMarks();
+}
+
+// 自己ベストを持つ言語タブに小さな印を出す。
+function refreshPbMarks(): void {
+  langsEl.querySelectorAll<HTMLElement>('.lang').forEach((el) => {
+    const pb = el.querySelector<HTMLElement>('.pb');
+    if (pb) pb.hidden = bestFor(el.dataset.lang ?? '') === undefined;
+  });
 }
 
 function buildKeyboard(): void {
@@ -84,8 +135,25 @@ function start(lang: Language): void {
   langsEl.querySelectorAll<HTMLElement>('.lang').forEach((el) => {
     el.classList.toggle('active', el.dataset.lang === lang.id);
   });
+  buildProgress();
   loadSnippet();
   if (!timer) timer = window.setInterval(updateStatus, 200);
+}
+
+function buildProgress(): void {
+  progressEl.replaceChildren();
+  for (let i = 0; i < language.snippets.length; i += 1) {
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    progressEl.appendChild(dot);
+  }
+}
+
+function renderProgress(): void {
+  progressEl.querySelectorAll<HTMLElement>('.dot').forEach((dot, i) => {
+    dot.classList.toggle('done', i < index);
+    dot.classList.toggle('current', i === index);
+  });
 }
 
 function loadSnippet(): void {
@@ -93,6 +161,7 @@ function loadSnippet(): void {
   noteEl.textContent = language.snippets[index]!.note;
   renderTarget();
   renderHints();
+  renderProgress();
   updateStatus();
   // 新しい行に切り替わったことをやわらかく見せる
   targetEl.classList.remove('enter');
@@ -105,6 +174,7 @@ function renderTarget(): void {
   for (const state of engine.states()) {
     const span = document.createElement('span');
     span.className = `ch ${state.status}`;
+    if (state.char === ' ') span.classList.add('space');
     span.textContent = state.char;
     targetEl.appendChild(span);
   }
@@ -123,10 +193,14 @@ function renderHints(): void {
 function updateStatus(): void {
   const acc = Math.round(engine.accuracy() * 100);
   statusEl.innerHTML =
-    `<span>${language.name}</span>` +
-    `<span>${index + 1} / ${language.snippets.length}</span>` +
-    `<span>${engine.wpm()} WPM</span>` +
-    `<span>正確性 ${acc}%</span>`;
+    metric('言語', `<span class="v">${language.name}</span>`, 'lang-name') +
+    metric('行', `<span class="v">${index + 1}<span class="unit">/ ${language.snippets.length}</span></span>`) +
+    metric('WPM', `<span class="v">${engine.wpm()}</span>`) +
+    metric('正確性', `<span class="v">${acc}<span class="unit">%</span></span>`);
+}
+
+function metric(key: string, value: string, extra = ''): string {
+  return `<div class="metric ${extra}">${value}<span class="k">${key}</span></div>`;
 }
 
 function advance(): void {
@@ -139,24 +213,48 @@ function advance(): void {
 }
 
 function showResult(): void {
+  window.clearInterval(timer);
+  timer = 0;
+  renderProgress();
   const minutes = totalTimeMs / 60000;
   const wpm = minutes > 0 ? Math.round(totalCorrect / 5 / minutes) : 0;
   const total = totalCorrect + totalMistakes;
   const acc = total > 0 ? Math.round((totalCorrect / total) * 100) : 100;
+
+  const { best, updated } = recordScore(language.id, { wpm, accuracy: acc });
+  refreshPbMarks();
+
   resultEl.hidden = false;
   resultEl.classList.remove('show');
   void resultEl.offsetWidth;
   resultEl.classList.add('show');
   resultEl.innerHTML =
-    `<h2>${language.name} 完了</h2>` +
+    `<h2><b>${language.name}</b> 完了</h2>` +
     `<div class="result-stats">` +
-    `<div><strong data-count="${wpm}">0</strong><span>WPM</span></div>` +
-    `<div><strong data-count="${acc}" data-suffix="%">0%</strong><span>正確性</span></div>` +
-    `<div><strong data-count="${language.snippets.length}">0</strong><span>打鍵した行</span></div>` +
+    cell(wpm, 'WPM', bestLine('WPM', best.wpm, updated)) +
+    cell(acc, '正確性', bestLine('正確性', best.accuracy, updated, '%'), '%') +
+    cell(language.snippets.length, '打鍵した行') +
     `</div>` +
     `<button type="button" class="retry">もう一度</button>`;
   resultEl.querySelector('.retry')!.addEventListener('click', () => start(language));
+  resultEl.querySelector<HTMLElement>('.retry')!.focus({ preventScroll: true });
   countUp();
+}
+
+function cell(value: number, label: string, best = '', suffix = ''): string {
+  return (
+    `<div class="cell">` +
+    `<strong data-count="${value}" data-suffix="${suffix}">0${suffix}</strong>` +
+    `<span class="label">${label}</span>` +
+    best +
+    `</div>`
+  );
+}
+
+function bestLine(_label: string, value: number, updated: boolean, suffix = ''): string {
+  const cls = updated ? 'best fresh' : 'best';
+  const text = updated ? '自己ベスト更新' : `自己ベスト ${value}${suffix}`;
+  return `<span class="${cls}">${text}</span>`;
 }
 
 // 結果の数値を0から目標へカウントアップする。reduced-motion時は即時表示。
@@ -169,7 +267,7 @@ function countUp(): void {
       el.textContent = `${to}${suffix}`;
       return;
     }
-    const duration = 620;
+    const duration = 640;
     const startAt = performance.now();
     const tick = (now: number): void => {
       const p = Math.min(1, (now - startAt) / duration);
@@ -183,7 +281,14 @@ function countUp(): void {
 
 window.addEventListener('keydown', (ev) => {
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
-  if (!resultEl.hidden) return;
+
+  if (!resultEl.hidden) {
+    if (ev.key === 'Enter' || ev.key === ' ') {
+      ev.preventDefault();
+      start(language);
+    }
+    return;
+  }
 
   if (ev.key === 'Backspace') {
     ev.preventDefault();
