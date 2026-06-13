@@ -75,6 +75,67 @@ export const LANGUAGES: Language[] = [
       { text: 'COUNT(*) AS total', note: '件数' },
     ],
   },
+  {
+    id: 'javascript',
+    name: 'JavaScript',
+    snippets: [
+      { text: 'console.log("hello")', note: '標準出力' },
+      { text: 'arr.map((x) => x * 2)', note: '写像' },
+      { text: '[...new Set(arr)]', note: '重複除去' },
+      { text: 'Object.keys(obj)', note: 'キー一覧' },
+      { text: 'arr.filter(Boolean)', note: '真値だけ残す' },
+      { text: 'await fetch(url)', note: '非同期取得' },
+      { text: 'JSON.parse(text)', note: '解析' },
+    ],
+  },
+  {
+    id: 'java',
+    name: 'Java',
+    snippets: [
+      { text: 'System.out.println("hi");', note: '標準出力' },
+      { text: 'List.of(1, 2, 3)', note: '不変リスト' },
+      { text: 'map.getOrDefault(k, 0)', note: '既定つき取得' },
+      { text: 'stream.filter(x -> x > 0)', note: '抽出' },
+      { text: 'new ArrayList<>()', note: 'リスト生成' },
+      { text: 'String.format("%d", n)', note: '整形' },
+    ],
+  },
+  {
+    id: 'c',
+    name: 'C',
+    snippets: [
+      { text: 'printf("%d\\n", n);', note: '出力' },
+      { text: 'malloc(sizeof(int) * n)', note: 'メモリ確保' },
+      { text: 'for (int i = 0; i < n; i++)', note: '反復' },
+      { text: 'struct Node *next;', note: 'ポインタ' },
+      { text: 'memcpy(dst, src, len);', note: '複製' },
+      { text: 'if (ptr == NULL)', note: 'NULL検査' },
+    ],
+  },
+  {
+    id: 'ruby',
+    name: 'Ruby',
+    snippets: [
+      { text: 'puts "hello"', note: '出力' },
+      { text: 'arr.map { |x| x * 2 }', note: '写像' },
+      { text: 'arr.select { |x| x > 0 }', note: '抽出' },
+      { text: 'hash.each { |k, v| }', note: '反復' },
+      { text: 'arr.reduce(:+)', note: '合計' },
+      { text: '"%05d" % n', note: 'ゼロ埋め整形' },
+    ],
+  },
+  {
+    id: 'bash',
+    name: 'Bash',
+    snippets: [
+      { text: 'echo "hello"', note: '出力' },
+      { text: 'for f in *.txt; do', note: '反復' },
+      { text: 'if [ -f "$path" ]; then', note: 'ファイル検査' },
+      { text: 'grep -r "TODO" .', note: '再帰検索' },
+      { text: 'cut -d\',\' -f1', note: '列抽出' },
+      { text: 'find . -name "*.ts"', note: '探索' },
+    ],
+  },
 ];
 
 export function languageById(id: string): Language | undefined {
