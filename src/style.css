@@ -114,6 +114,24 @@ body {
   border-radius: 2px;
 }
 
+/* タッチ端末でソフトキーボードを呼ぶための捕捉用input。
+   表示はしないがフォーカスは受けられる(display:noneだとフォーカス不可)。
+   iOSでフォーカス時に拡大しないよう16px。 */
+.catch {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  font-size: 16px;
+  color: transparent;
+  background: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ---- ヘッダー ---- */
 
 .head {
