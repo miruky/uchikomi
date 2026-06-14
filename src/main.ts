@@ -24,6 +24,7 @@ app.innerHTML = `
       <button type="button" class="theme-toggle" id="theme"></button>
     </header>
     <p class="lede reveal d1">各言語の関数や構文を、画面のキーボードで運指を確かめながら打つ。記号の多いコードを速く正確に打つ練習に。</p>
+    <p class="touch-hint" id="touch-hint" hidden>画面に触れるとソフトキーボードが開きます。表示された一行をそのまま打ってください。</p>
     <nav class="langs reveal d2" id="langs" aria-label="言語選択"></nav>
     <section class="stage reveal d3" aria-label="出題">
       <div class="status" id="status"></div>
@@ -45,6 +46,7 @@ const keyboardEl = app.querySelector<HTMLElement>('#keyboard')!;
 const resultEl = app.querySelector<HTMLElement>('#result')!;
 const themeBtn = app.querySelector<HTMLButtonElement>('#theme')!;
 const catchEl = app.querySelector<HTMLInputElement>('#catch')!;
+const touchHintEl = app.querySelector<HTMLElement>('#touch-hint')!;
 
 // ソフトキーボードしか無い端末では、隠しinputへ打鍵を集める。
 const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
@@ -70,6 +72,7 @@ start(language);
 // beforeinput から打鍵を取り込む(物理キーボードの keydown と二重に数えない)。
 function setupInput(): void {
   if (!coarsePointer) return;
+  touchHintEl.hidden = false;
   const focusCatch = (): void => {
     if (resultEl.hidden) catchEl.focus({ preventScroll: true });
   };
@@ -120,6 +123,7 @@ function buildLangs(): void {
     btn.className = 'lang';
     btn.dataset.lang = lang.id;
     btn.textContent = lang.name;
+    btn.setAttribute('aria-pressed', 'false');
     const pb = document.createElement('span');
     pb.className = 'pb';
     pb.hidden = true;
@@ -166,7 +170,9 @@ function start(lang: Language): void {
   // 共有できるよう現在の言語をURLに残す(履歴は積まない)。
   history.replaceState(null, '', searchForLang(lang.id));
   langsEl.querySelectorAll<HTMLElement>('.lang').forEach((el) => {
-    el.classList.toggle('active', el.dataset.lang === lang.id);
+    const active = el.dataset.lang === lang.id;
+    el.classList.toggle('active', active);
+    el.setAttribute('aria-pressed', String(active));
   });
   buildProgress();
   loadSnippet();
@@ -272,8 +278,13 @@ function showResult(): void {
     cell(language.snippets.length, '打鍵した行') +
     `</div>` +
     `<button type="button" class="retry">もう一度</button>`;
-  resultEl.querySelector('.retry')!.addEventListener('click', () => start(language));
-  resultEl.querySelector<HTMLElement>('.retry')!.focus({ preventScroll: true });
+  const retry = resultEl.querySelector<HTMLButtonElement>('.retry')!;
+  retry.setAttribute(
+    'aria-label',
+    `${language.name}完了。${wpm} WPM、正確性 ${acc} パーセント。もう一度挑戦する`,
+  );
+  retry.addEventListener('click', () => start(language));
+  retry.focus({ preventScroll: true });
   countUp();
 }
 
