@@ -208,6 +208,29 @@ body {
   font-size: 15px;
 }
 
+.touch-hint {
+  margin-top: calc(var(--step) * 1.5);
+  max-width: 48ch;
+  font-size: 13px;
+  color: var(--accent);
+  display: flex;
+  gap: 8px;
+}
+
+.touch-hint::before {
+  content: '';
+  flex: none;
+  width: 3px;
+  align-self: stretch;
+  background: var(--accent-bg);
+  border-radius: 2px;
+}
+
+/* hidden属性がdisplay指定に負けないよう明示する。 */
+.touch-hint[hidden] {
+  display: none;
+}
+
 /* ---- 言語タブ ---- */
 
 .langs {
