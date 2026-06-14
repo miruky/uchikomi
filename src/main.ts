@@ -1,8 +1,9 @@
 import './style.css';
 import { TypingEngine } from './engine';
 import { hintFor, ROWS } from './keyboard';
-import { LANGUAGES, type Language } from './snippets';
+import { LANGUAGES, languageById, type Language } from './snippets';
 import { bestFor, recordScore } from './records';
+import { langIdFromSearch, searchForLang } from './share';
 import { applyTheme, loadTheme, nextTheme, THEME_LABEL, type ThemeMode } from './theme';
 
 const app = document.getElementById('app');
@@ -13,6 +14,8 @@ applyTheme(theme);
 
 app.innerHTML = `
   <main class="wrap">
+    <input class="catch" id="catch" tabindex="-1" aria-hidden="true" autocomplete="off"
+      autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text" />
     <header class="head reveal">
       <div class="brand">
         <p class="kicker">コードタイピング</p>
@@ -41,8 +44,13 @@ const progressEl = app.querySelector<HTMLElement>('#progress')!;
 const keyboardEl = app.querySelector<HTMLElement>('#keyboard')!;
 const resultEl = app.querySelector<HTMLElement>('#result')!;
 const themeBtn = app.querySelector<HTMLButtonElement>('#theme')!;
+const catchEl = app.querySelector<HTMLInputElement>('#catch')!;
 
-let language: Language = LANGUAGES[0]!;
+// ソフトキーボードしか無い端末では、隠しinputへ打鍵を集める。
+const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+
+const initialId = langIdFromSearch(location.search, (id) => languageById(id) !== undefined);
+let language: Language = (initialId ? languageById(initialId) : undefined) ?? LANGUAGES[0]!;
 let index = 0;
 let engine = new TypingEngine(language.snippets[0]!.text);
 let totalCorrect = 0;
@@ -53,9 +61,32 @@ let timer = 0;
 const keyEls = new Map<string, HTMLElement[]>();
 
 setupTheme();
+setupInput();
 buildLangs();
 buildKeyboard();
 start(language);
+
+// タッチ端末: 画面に触れたら隠しinputへフォーカスしてソフトキーボードを出し、
+// beforeinput から打鍵を取り込む(物理キーボードの keydown と二重に数えない)。
+function setupInput(): void {
+  if (!coarsePointer) return;
+  const focusCatch = (): void => {
+    if (resultEl.hidden) catchEl.focus({ preventScroll: true });
+  };
+  document.addEventListener('pointerdown', focusCatch);
+  catchEl.addEventListener('beforeinput', (ev) => {
+    if (ev.isComposing) return;
+    if (ev.inputType === 'insertText' && ev.data) {
+      for (const ch of ev.data) processChar(ch);
+    } else if (ev.inputType === 'deleteContentBackward') {
+      engine.backspace();
+      renderTarget();
+      renderHints();
+    }
+    ev.preventDefault();
+    catchEl.value = '';
+  });
+}
 
 function setupTheme(): void {
   renderThemeBtn();
@@ -132,11 +163,14 @@ function start(lang: Language): void {
   totalMistakes = 0;
   totalTimeMs = 0;
   resultEl.hidden = true;
+  // 共有できるよう現在の言語をURLに残す(履歴は積まない)。
+  history.replaceState(null, '', searchForLang(lang.id));
   langsEl.querySelectorAll<HTMLElement>('.lang').forEach((el) => {
     el.classList.toggle('active', el.dataset.lang === lang.id);
   });
   buildProgress();
   loadSnippet();
+  if (coarsePointer) catchEl.focus({ preventScroll: true });
   if (!timer) timer = window.setInterval(updateStatus, 200);
 }
 
@@ -192,11 +226,13 @@ function renderHints(): void {
 
 function updateStatus(): void {
   const acc = Math.round(engine.accuracy() * 100);
+  const best = bestFor(language.id);
   statusEl.innerHTML =
     metric('言語', `<span class="v">${language.name}</span>`, 'lang-name') +
     metric('行', `<span class="v">${index + 1}<span class="unit">/ ${language.snippets.length}</span></span>`) +
     metric('WPM', `<span class="v">${engine.wpm()}</span>`) +
-    metric('正確性', `<span class="v">${acc}<span class="unit">%</span></span>`);
+    metric('正確性', `<span class="v">${acc}<span class="unit">%</span></span>`) +
+    metric('自己ベスト', `<span class="v">${best ? best.wpm : '—'}<span class="unit">${best ? 'wpm' : ''}</span></span>`);
 }
 
 function metric(key: string, value: string, extra = ''): string {
@@ -283,13 +319,18 @@ window.addEventListener('keydown', (ev) => {
   if (ev.metaKey || ev.ctrlKey || ev.altKey) return;
 
   if (!resultEl.hidden) {
-    if (ev.key === 'Enter' || ev.key === ' ') {
+    if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Escape') {
       ev.preventDefault();
       start(language);
     }
     return;
   }
 
+  if (ev.key === 'Escape') {
+    ev.preventDefault();
+    start(language);
+    return;
+  }
   if (ev.key === 'Backspace') {
     ev.preventDefault();
     engine.backspace();
@@ -299,14 +340,20 @@ window.addEventListener('keydown', (ev) => {
   }
   if (ev.key === 'Tab' || ev.key === ' ') ev.preventDefault();
   if (ev.key.length !== 1) return;
+  processChar(ev.key);
+});
 
-  const ok = engine.input(ev.key);
+// 1文字を判定に流し、表示・運指・統計・フィードバックを更新する。
+// 行が終わったら次へ進む。完了済みなら何もしない(二重に進めない)。
+function processChar(char: string): void {
+  if (engine.finished) return;
+  const ok = engine.input(char);
   renderTarget();
   renderHints();
   updateStatus();
-  flashFeedback(ev.key, ok);
+  flashFeedback(char, ok);
   if (engine.finished) window.setTimeout(advance, 220);
-});
+}
 
 // 打鍵のたびに、押したキーを点灯させる。誤打は赤く点滅し、打鍵対象を小さく揺らす。
 function flashFeedback(char: string, ok: boolean): void {
