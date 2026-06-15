@@ -4,6 +4,7 @@ import { hintFor, ROWS } from './keyboard';
 import { LANGUAGES, languageById, type Language } from './snippets';
 import { bestFor, recordScore } from './records';
 import { langIdFromSearch, searchForLang } from './share';
+import { loadHints, saveHints } from './settings';
 import { displayKey, topMissedKeys } from './stats';
 import { applyTheme, loadTheme, nextTheme, THEME_LABEL, type ThemeMode } from './theme';
 
@@ -22,7 +23,10 @@ app.innerHTML = `
         <p class="kicker">コードタイピング</p>
         <h1 class="wordmark">uchikomi<span class="caret" aria-hidden="true"></span></h1>
       </div>
-      <button type="button" class="theme-toggle" id="theme"></button>
+      <div class="head-tools">
+        <button type="button" class="tool-toggle" id="hints"></button>
+        <button type="button" class="theme-toggle" id="theme"></button>
+      </div>
     </header>
     <p class="lede reveal d1">各言語の関数や構文を、画面のキーボードで運指を確かめながら打つ。記号の多いコードを速く正確に打つ練習に。</p>
     <p class="touch-hint" id="touch-hint" hidden>画面に触れるとソフトキーボードが開きます。表示された一行をそのまま打ってください。</p>
@@ -46,6 +50,7 @@ const progressEl = app.querySelector<HTMLElement>('#progress')!;
 const keyboardEl = app.querySelector<HTMLElement>('#keyboard')!;
 const resultEl = app.querySelector<HTMLElement>('#result')!;
 const themeBtn = app.querySelector<HTMLButtonElement>('#theme')!;
+const hintsBtn = app.querySelector<HTMLButtonElement>('#hints')!;
 const catchEl = app.querySelector<HTMLInputElement>('#catch')!;
 const touchHintEl = app.querySelector<HTMLElement>('#touch-hint')!;
 
@@ -64,8 +69,10 @@ let timer = 0;
 let missByKey = new Map<string, number>();
 
 const keyEls = new Map<string, HTMLElement[]>();
+let hintsOn = loadHints();
 
 setupTheme();
+setupHints();
 setupInput();
 buildLangs();
 buildKeyboard();
@@ -106,6 +113,35 @@ function setupTheme(): void {
 function renderThemeBtn(): void {
   themeBtn.innerHTML = `${themeIcon(theme)}<span>${THEME_LABEL[theme]}</span>`;
   themeBtn.setAttribute('aria-label', `表示テーマを切り替える(現在: ${THEME_LABEL[theme]})`);
+}
+
+// 運指ヒントの表示/非表示。消すと次に押すキーが光らない上級者向けの設定。
+function setupHints(): void {
+  document.body.classList.toggle('hints-off', !hintsOn);
+  renderHintsBtn();
+  hintsBtn.addEventListener('click', () => {
+    hintsOn = !hintsOn;
+    saveHints(hintsOn);
+    document.body.classList.toggle('hints-off', !hintsOn);
+    renderHintsBtn();
+    renderHints();
+  });
+}
+
+function renderHintsBtn(): void {
+  const state = hintsOn ? '表示' : '非表示';
+  hintsBtn.innerHTML = `${hintIcon(hintsOn)}<span>運指 ${state}</span>`;
+  hintsBtn.setAttribute('aria-pressed', String(hintsOn));
+  hintsBtn.setAttribute('aria-label', `運指ヒントの表示を切り替える(現在: ${state})`);
+}
+
+function hintIcon(on: boolean): string {
+  const open =
+    '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  if (on) {
+    return `${open}<path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  }
+  return `${open}<path d="M4 4l16 16"/><path d="M9.6 5.9A9 9 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.5 3.1"/><path d="M6.4 7.6A16 16 0 0 0 2.5 12S6 18.5 12 18.5a8.4 8.4 0 0 0 2.6-.4"/></svg>`;
 }
 
 function themeIcon(mode: ThemeMode): string {
@@ -152,6 +188,8 @@ function buildKeyboard(): void {
     for (const key of row) {
       const keyEl = document.createElement('div');
       keyEl.className = 'key';
+      // ホームポジションのf・jは、実物同様に小さな指標(突起)を付ける。
+      if (key.code === 'f' || key.code === 'j') keyEl.classList.add('home');
       keyEl.style.flexGrow = String(key.width);
       keyEl.textContent = key.code;
       rowEl.appendChild(keyEl);
@@ -226,6 +264,7 @@ function renderTarget(): void {
 
 function renderHints(): void {
   keyEls.forEach((els) => els.forEach((el) => el.classList.remove('next', 'shift')));
+  if (!hintsOn) return;
   const next = engine.nextChar();
   if (next === null) return;
   const hint = hintFor(next);
