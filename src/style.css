@@ -537,6 +537,56 @@ body {
   font-weight: 600;
 }
 
+.weak-keys {
+  margin-bottom: calc(var(--step) * 4);
+}
+
+.weak-clean {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.weak-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: calc(var(--step) * 1.5);
+}
+
+.weak-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--step);
+}
+
+.weak-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px 5px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.weak-chip code {
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.weak-count {
+  min-width: 22px;
+  padding: 1px 6px;
+  font-size: 12px;
+  text-align: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-bg) 18%, transparent);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
 .retry {
   font: inherit;
   font-size: 14px;
