@@ -4,6 +4,7 @@ import { hintFor, ROWS } from './keyboard';
 import { LANGUAGES, languageById, type Language } from './snippets';
 import { bestFor, recordScore } from './records';
 import { langIdFromSearch, searchForLang } from './share';
+import { displayKey, topMissedKeys } from './stats';
 import { applyTheme, loadTheme, nextTheme, THEME_LABEL, type ThemeMode } from './theme';
 
 const app = document.getElementById('app');
@@ -59,6 +60,8 @@ let totalCorrect = 0;
 let totalMistakes = 0;
 let totalTimeMs = 0;
 let timer = 0;
+// 1回のプレイで打ち間違えた文字の集計(苦手なキーの提示に使う)。
+let missByKey = new Map<string, number>();
 
 const keyEls = new Map<string, HTMLElement[]>();
 
@@ -166,6 +169,7 @@ function start(lang: Language): void {
   totalCorrect = 0;
   totalMistakes = 0;
   totalTimeMs = 0;
+  missByKey = new Map();
   resultEl.hidden = true;
   // 共有できるよう現在の言語をURLに残す(履歴は積まない)。
   history.replaceState(null, '', searchForLang(lang.id));
@@ -277,6 +281,7 @@ function showResult(): void {
     cell(acc, '正確性', bestLine('正確性', best.accuracy, updated, '%'), '%') +
     cell(language.snippets.length, '打鍵した行') +
     `</div>` +
+    weakKeysBlock() +
     `<button type="button" class="retry">もう一度</button>`;
   const retry = resultEl.querySelector<HTMLButtonElement>('.retry')!;
   retry.setAttribute(
@@ -286,6 +291,25 @@ function showResult(): void {
   retry.addEventListener('click', () => start(language));
   retry.focus({ preventScroll: true });
   countUp();
+}
+
+// 誤打の多かった文字を提示する。ミスが無ければ称える一文を出す。
+function weakKeysBlock(): string {
+  const top = topMissedKeys(missByKey, 4);
+  if (top.length === 0) {
+    return `<p class="weak-keys weak-clean">ノーミス。運指が安定しています。</p>`;
+  }
+  const chips = top
+    .map(
+      (m) =>
+        `<span class="weak-chip"><code>${escapeHtml(displayKey(m.key))}</code><span class="weak-count">${m.count}</span></span>`,
+    )
+    .join('');
+  return `<div class="weak-keys"><span class="weak-label">苦手なキー</span><div class="weak-chips">${chips}</div></div>`;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function cell(value: number, label: string, best = '', suffix = ''): string {
@@ -358,7 +382,11 @@ window.addEventListener('keydown', (ev) => {
 // 行が終わったら次へ進む。完了済みなら何もしない(二重に進めない)。
 function processChar(char: string): void {
   if (engine.finished) return;
+  const expected = engine.nextChar();
   const ok = engine.input(char);
+  if (!ok && expected !== null) {
+    missByKey.set(expected, (missByKey.get(expected) ?? 0) + 1);
+  }
   renderTarget();
   renderHints();
   updateStatus();
