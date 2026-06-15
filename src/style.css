@@ -171,7 +171,16 @@ body {
   border-radius: 1px;
 }
 
-.theme-toggle {
+.head-tools {
+  display: flex;
+  align-items: center;
+  gap: var(--step);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.theme-toggle,
+.tool-toggle {
   font: inherit;
   font-size: 12px;
   letter-spacing: 0.12em;
@@ -190,15 +199,22 @@ body {
     border-color 0.18s var(--ease);
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.tool-toggle:hover {
   color: var(--ink);
   border-color: var(--accent);
 }
 
-.theme-toggle .ico {
+.theme-toggle .ico,
+.tool-toggle .ico {
   width: 15px;
   height: 15px;
   color: var(--accent);
+}
+
+/* 運指ヒントを切った状態は、アイコンを沈めて区別する */
+.tool-toggle[aria-pressed='false'] .ico {
+  color: var(--ink-faint);
 }
 
 .lede {
@@ -457,6 +473,24 @@ body {
     color 0.12s var(--ease),
     border-color 0.12s var(--ease),
     background-color 0.12s var(--ease);
+}
+
+.key {
+  position: relative;
+}
+
+/* ホームポジション(f・j)の指標。実物の突起を細い罫線で示す */
+.key.home::after {
+  content: '';
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  width: 11px;
+  height: 1.5px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+  background: currentColor;
+  opacity: 0.55;
 }
 
 .key.next {
